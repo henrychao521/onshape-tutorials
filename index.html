@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onshape 教學重製 — 人機協作實作歷程全紀錄</title>
+<style>
+  :root{
+    --bg:#0b1a2b; --panel:#0f2438; --ink:#dbe9f4; --dim:#7fa6c4; --line:#1d3a55;
+    --cyan:#37c2e0; --amber:#f5b948; --green:#4fd18b; --red:#ff6b6b; --violet:#b48cff;
+    --mono:"SFMono-Regular",ui-monospace,"Menlo",Consolas,monospace;
+    --sans:"PingFang TC","Noto Sans TC",-apple-system,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:42px 42px;background-position:-1px -1px;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px 120px}
+  header.hero{padding:78px 0 40px;border-bottom:1px solid var(--line);margin-bottom:10px}
+  .kicker{font-family:var(--mono);color:var(--cyan);letter-spacing:.32em;font-size:12px;text-transform:uppercase}
+  h1{font-size:clamp(30px,5vw,52px);line-height:1.12;margin:14px 0 8px;font-weight:800;letter-spacing:-.5px}
+  h1 span{color:var(--cyan)}
+  .sub{color:var(--dim);font-size:18px;max-width:760px}
+  .meta{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-top:22px;display:flex;flex-wrap:wrap;gap:8px 26px}
+  .meta b{color:var(--ink);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:34px 0 6px}
+  .stat{border:1px solid var(--line);border-left:3px solid var(--cyan);background:rgba(15,36,56,.6);padding:14px 16px}
+  .stat b{display:block;font-size:30px;font-weight:800;line-height:1}
+  .stat span{font-size:12.5px;color:var(--dim)}
+  nav.toc{position:sticky;top:0;z-index:9;background:rgba(11,26,43,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);padding:11px 0;margin:0 -22px 40px;overflow-x:auto;white-space:nowrap}
+  nav.toc a{color:var(--dim);text-decoration:none;font-family:var(--mono);font-size:12.5px;padding:6px 16px;display:inline-block}
+  nav.toc a:hover{color:var(--cyan)}
+  section{margin:54px 0;scroll-margin-top:60px}
+  h2{font-size:27px;font-weight:800;margin:0 0 6px;display:flex;align-items:baseline;gap:12px}
+  h2 .n{font-family:var(--mono);color:var(--cyan);font-size:15px}
+  h2 + .lede{color:var(--dim);margin:0 0 26px;font-size:16px}
+  h3{font-size:18px;margin:30px 0 8px;color:var(--ink)}
+  p{margin:12px 0}
+  .panel{background:var(--panel);border:1px solid var(--line);padding:22px 24px;margin:18px 0}
+  .panel.cyan{border-left:3px solid var(--cyan)} .panel.amber{border-left:3px solid var(--amber)}
+  .panel.green{border-left:3px solid var(--green)} .panel.red{border-left:3px solid var(--red)}
+  code,.k{font-family:var(--mono);background:rgba(55,194,224,.12);color:var(--cyan);padding:1.5px 6px;border-radius:3px;font-size:.9em}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);background:rgba(15,36,56,.45);padding:0;overflow:hidden}
+  .card .fig{background:#081523;border-bottom:1px solid var(--line);padding:14px;text-align:center}
+  .card .body{padding:16px 18px}
+  .card h3{margin-top:0}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 9px;border:1px solid var(--line);border-radius:20px;color:var(--dim);margin:2px 4px 2px 0}
+  .tag.ok{color:var(--green);border-color:rgba(79,209,139,.4)}
+  .tag.warn{color:var(--amber);border-color:rgba(245,185,72,.4)}
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:12px;color:var(--cyan);text-transform:uppercase;letter-spacing:.08em}
+  td.s{font-family:var(--mono);white-space:nowrap}
+  .pill{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:3px;white-space:nowrap}
+  .p-block{background:rgba(255,107,107,.15);color:var(--red)} .p-solve{background:rgba(79,209,139,.15);color:var(--green)}
+  /* transcript */
+  .chat{border-left:2px solid var(--line);padding-left:0;margin:20px 0}
+  .turn{margin:0 0 4px;padding:14px 18px;border:1px solid var(--line);border-left:3px solid var(--violet);background:rgba(180,140,255,.06)}
+  .turn.me{border-left-color:var(--cyan);background:rgba(55,194,224,.05)}
+  .turn .who{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+  .turn.user .who{color:var(--violet)} .turn.me .who{color:var(--cyan)}
+  .turn p{margin:6px 0}
+  /* reasoning */
+  .think{border:1px dashed var(--line);background:rgba(255,255,255,.02);padding:16px 20px;margin:16px 0;position:relative}
+  .think::before{content:"自我對話";position:absolute;top:-9px;left:14px;background:var(--bg);padding:0 8px;font-family:var(--mono);font-size:10.5px;color:var(--amber);letter-spacing:.15em}
+  .think .q{color:var(--dim);font-style:italic}
+  /* animation player */
+  .player{border:1px solid var(--line);background:#081523;padding:0;overflow:hidden;margin:22px 0}
+  .player .bar{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--red)}.dot.rec{animation:blink 1.1s infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .vgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin:22px 0}
+  .vid{border:1px solid var(--line);background:#081523}
+  .vbar{padding:9px 14px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12.5px;color:var(--dim);display:flex;align-items:center;gap:8px}
+  .vid video{width:100%;display:block;background:#000}
+  .vid figcaption{padding:10px 14px;color:var(--cyan);font-size:14px;border-top:1px solid var(--line);margin:0}
+  .footer{border-top:1px solid var(--line);margin-top:70px;padding-top:24px;color:var(--dim);font-size:13px}
+  a.link{color:var(--cyan)}
+  ul.clean{list-style:none;padding:0} ul.clean li{padding:7px 0 7px 26px;position:relative;border-bottom:1px solid rgba(29,58,85,.5)}
+  ul.clean li::before{content:"▸";position:absolute;left:4px;color:var(--cyan)}
+  .lab{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;margin-top:6px;letter-spacing:.05em}
+</style>
+</head>
+<body>
+<div style="background:rgba(245,185,72,.12);border-bottom:2px solid var(--amber);color:var(--amber);text-align:center;padding:11px 16px;font-family:var(--mono);font-size:13.5px;letter-spacing:.02em">⚠ 測試中 · 暫且成果不理想 —— 本頁為 AI 自動操作 Onshape 的實驗歷程，操作結果尚在調整中</div>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">人機協作 · 實作歷程全紀錄</div>
+  <h1>用 AI 自動操作 <span>Onshape</span><br>重製《動手入門 3D 繪圖》教學</h1>
+  <p class="sub">一場把「讀書 → 上網查資料 → 真的開瀏覽器操作 CAD → 踩雷 → 破解 → 建模」整條鏈走完的紀錄。誠實收錄成功、失敗、與我每一步的內心決策。</p>
+  <div class="meta">
+    <span>原書 ·<b>趙珩宇《動手入門：3D 繪圖到機構製作》</b>（台科大圖書）</span>
+    <span>操作者 ·<b>Claude（Onshape 全自動）</b></span>
+    <span>日期 ·<b>2026-06-23</b></span>
+    <span>文件 ·<b>本人帳號 › Onshape教學_小動物</b></span>
+  </div>
+  <div class="stats">
+    <div class="stat"><b>3</b><span>章節模型完成（CH3/4/5）</span></div>
+    <div class="stat"><b>9</b><span>種 CAD 操作型態實測通過</span></div>
+    <div class="stat"><b>23</b><span>個錯誤／阻礙誠實紀錄</span></div>
+    <div class="stat"><b>1</b><span>條被破解的關鍵手法</span></div>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#intro">緣起</a>
+  <a href="#recipe">★ 破解的手法</a>
+  <a href="#work">實作歷程</a>
+  <a href="#film">★ 教學影片</a>
+  <a href="#script">逐字稿</a>
+  <a href="#mind">我的思考紀錄</a>
+  <a href="#errors">錯誤紀錄</a>
+  <a href="#end">結語與限制</a>
+</nav>
+
+<section id="intro">
+  <h2><span class="n">00</span>緣起</h2>
+  <p class="lede">使用者（本書作者）丟來他寫的 Onshape 教科書 PDF，提出一個大膽的測試。</p>
+  <div class="panel violet" style="border-left:3px solid var(--violet)">
+    <p style="margin:0">「這本是我寫的書……希望你看完我的書之後，依據裡面的操作介紹，<b>自行操作 Google Chrome 重新拍攝每個章節的教學影片</b>。我想測試你的<b>自我拍片和剪輯</b>功能。」</p>
+  </div>
+  <p>於是任務分成兩半：<b>(1) 拍</b> —— 真的開瀏覽器、登入 Onshape、照書中步驟把模型畫出來；<b>(2) 剪</b> —— 把畫面錄下來丟進 Palmier 剪成教學片。結果是：<b>「畫」這半邊，從卡關到全破；「錄」這半邊，撞到工具鏈的硬牆。</b>兩邊都誠實收錄在這頁。</p>
+</section>
+
+<section id="recipe">
+  <h2><span class="n">01</span>★ 被破解的關鍵手法</h2>
+  <p class="lede">整個任務的轉捩點：Onshape 的繪圖區是 WebGL 畫布，一開始連「把邊長打成 50」都做不到。最後歸納出一套可靠配方。</p>
+  <div class="player">
+    <div class="bar"><span class="dot"></span><span>reliable-recipe.svg</span></div>
+    <svg viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%">
+      <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6Z" fill="#37c2e0"/></marker></defs>
+      <text x="30" y="40" fill="#dbe9f4" font-family="monospace" font-size="17" font-weight="700">尺寸數值輸入 — 為什麼一開始全壞？</text>
+      <!-- bad -->
+      <rect x="30" y="64" width="400" height="118" rx="4" fill="#1a0f12" stroke="#ff6b6b" stroke-opacity=".5"/>
+      <text x="48" y="90" fill="#ff6b6b" font-family="monospace" font-size="13">✗ 打 "50" 一次送出</text>
+      <text x="48" y="116" fill="#7fa6c4" font-family="monospace" font-size="12.5">擴充功能合成鍵太快 → 掉字</text>
+      <text x="48" y="140" fill="#dbe9f4" font-family="monospace" font-size="20">"50" → "5"</text>
+      <text x="48" y="166" fill="#7fa6c4" font-family="monospace" font-size="12.5">Tab 跳欄 → 焦點沒移 → 衝突歸 0</text>
+      <!-- good -->
+      <rect x="470" y="64" width="400" height="118" rx="4" fill="#0c1f14" stroke="#4fd18b" stroke-opacity=".5"/>
+      <text x="488" y="90" fill="#4fd18b" font-family="monospace" font-size="13">✓ 一次只打一個字元</text>
+      <text x="488" y="120" fill="#dbe9f4" font-family="monospace" font-size="20">"5" · 截圖 · "0" · 截圖</text>
+      <text x="488" y="150" fill="#4fd18b" font-family="monospace" font-size="13">↵ 用 Enter 跳欄（書裡寫的）</text>
+      <text x="488" y="172" fill="#7fa6c4" font-family="monospace" font-size="12.5">— 不是 Tab</text>
+      <line x1="430" y1="123" x2="468" y2="123" stroke="#37c2e0" stroke-width="2" marker-end="url(#ar)"/>
+      <!-- rules -->
+      <text x="30" y="226" fill="#dbe9f4" font-family="monospace" font-size="15" font-weight="700">通用規則</text>
+      <g font-family="monospace" font-size="12.5">
+        <rect x="30" y="240" width="270" height="44" fill="#0f2438" stroke="#1d3a55"/><text x="44" y="258" fill="#37c2e0">叫工具</text><text x="44" y="276" fill="#dbe9f4">搜尋框打名稱 → 按 Enter</text>
+        <rect x="315" y="240" width="270" height="44" fill="#0f2438" stroke="#1d3a55"/><text x="329" y="258" fill="#37c2e0">選取</text><text x="329" y="276" fill="#dbe9f4">面/區域(大目標) ✓ 細邊 ✗</text>
+        <rect x="600" y="240" width="270" height="44" fill="#0f2438" stroke="#1d3a55"/><text x="614" y="258" fill="#37c2e0">對話框欄位</text><text x="614" y="276" fill="#dbe9f4">DOM 輸入可一次打完</text>
+        <rect x="30" y="296" width="270" height="44" fill="#0f2438" stroke="#1d3a55"/><text x="44" y="314" fill="#37c2e0">正視於</text><text x="44" y="332" fill="#dbe9f4">選平面 → 按 n（鏡像再按一次）</text>
+        <rect x="315" y="296" width="270" height="44" fill="#0f2438" stroke="#1d3a55"/><text x="329" y="314" fill="#37c2e0">刪除</text><text x="329" y="332" fill="#dbe9f4">點選該物件 → Delete（非 cmd）</text>
+        <rect x="600" y="296" width="270" height="44" fill="#0f2438" stroke="#1d3a55"/><text x="614" y="314" fill="#37c2e0">每步</text><text x="614" y="332" fill="#dbe9f4">截圖驗證再往下</text>
+      </g>
+    </svg>
+  </div>
+  <p>關鍵頓悟其實藏在<b>原書</b>裡：書中 3-2 寫「輸入完數值後<b>按下 Enter，方格就會跳到左側</b>」——我先前一直用 Tab，才一直失敗。配方落定後，從「畫不出 50×50」變成「全自動畫出精準立方體」。</p>
+</section>
+
+<section id="work">
+  <h2><span class="n">02</span>實作歷程</h2>
+  <p class="lede">三個章節模型，全部用上面那套手法、真的在 Onshape 裡一步步畫出來。</p>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="fig">
+        <svg viewBox="0 0 220 170" width="200" height="155" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#37c2e0" stroke-width="1.6" fill="#0f2438">
+            <!-- ears -->
+            <path d="M70 58 q-10 -30 8 -34 q16 4 8 30 Z" fill="#13314a"/>
+            <path d="M122 56 q-8 -30 9 -33 q16 5 7 31 Z" fill="#13314a"/>
+            <!-- body cube -->
+            <path d="M55 70 L120 50 L175 70 L110 92 Z" fill="#1b4061"/>
+            <path d="M55 70 L55 130 L110 152 L110 92 Z" fill="#102a42"/>
+            <path d="M110 92 L110 152 L175 130 L175 70 Z" fill="#163952"/>
+          </g>
+        </svg>
+        <div class="lab">CH3 · 可愛小動物</div>
+      </div>
+      <div class="body">
+        <h3>第 3 章 · 小動物</h3>
+        <p>身體＝Top 平面畫 <code>50×50</code> 中心矩形 → 擠出 <code>50mm</code> 立方體。耳朵＝在頂面畫<b>兩條自由曲線(spline)</b>→ 一次擠出 <code>+20mm</code>。</p>
+        <span class="tag ok">精密尺寸草圖</span><span class="tag ok">擠出</span><span class="tag ok">面上草圖</span><span class="tag ok">自由曲線</span><span class="tag ok">多區域擠出</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="fig">
+        <svg viewBox="0 0 220 170" width="200" height="155" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#37c2e0" stroke-width="1.6">
+            <ellipse cx="110" cy="48" rx="48" ry="15" fill="#102a42"/>
+            <ellipse cx="110" cy="48" rx="36" ry="10" fill="#081523"/>
+            <path d="M62 48 L70 132 q40 18 80 0 L158 48" fill="#1b4061" fill-opacity=".85"/>
+            <ellipse cx="110" cy="132" rx="40" ry="11" fill="#163952"/>
+            <path d="M156 64 q34 6 30 40 q-4 26 -30 30" fill="none" stroke-width="6" stroke="#1b4061"/>
+          </g>
+        </svg>
+        <div class="lab">CH4 · 馬克杯</div>
+      </div>
+      <div class="body">
+        <h3>第 4 章 · 馬克杯</h3>
+        <p>Top 平面畫 <code>Ø70</code> 圓 → 擠出 <code>80mm</code> 圓柱 → <b>薄殼</b>移除頂面、壁厚 <code>4mm</code> ＝ 中空杯（把手為進階掃掠，先留）。</p>
+        <span class="tag ok">圓</span><span class="tag ok">擠出</span><span class="tag ok">薄殼挖空</span><span class="tag warn">把手(掃掠) 略</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="fig">
+        <svg viewBox="0 0 220 170" width="200" height="155" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#37c2e0" stroke-width="1.6">
+            <ellipse cx="150" cy="58" rx="20" ry="12" fill="#163952"/>
+            <path d="M130 58 L130 80 q20 12 40 0 L170 58" fill="#1b4061"/>
+            <path d="M40 78 L150 60 L182 78 L72 96 Z" fill="#1b4061"/>
+            <path d="M40 78 L40 110 L72 128 L72 96 Z" fill="#102a42"/>
+            <path d="M72 96 L72 128 L182 110 L182 78 Z" fill="#163952"/>
+            <circle cx="60" cy="93" r="3" fill="#081523"/><circle cx="160" cy="93" r="3" fill="#081523"/>
+          </g>
+        </svg>
+        <div class="lab">CH5 · TT 馬達工程件</div>
+      </div>
+      <div class="body">
+        <h3>第 5 章 · TT 馬達（上網查尺寸）</h3>
+        <p>查 Adafruit／Handson 資料表得實際規格：齒輪箱 <code>70×22×19mm</code>、軸 <code>Ø5.3</code>。畫 70×22 矩形 → 擠出 19mm → 頂面馬達圓 <code>Ø18</code> 草圖。</p>
+        <span class="tag ok">查資料用真實尺寸</span><span class="tag ok">多特徵工程件</span><span class="tag warn">突出圓柱方向未顯</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="body" style="padding:18px 18px 22px">
+        <h3>還沒做 / 做不了的</h3>
+        <ul class="clean" style="font-size:14px">
+          <li><b>第 5-3 動態模擬</b>：組合件運動，進階功能。</li>
+          <li><b>第 6 章拼圖</b>：要「描」動物圖，<b>需作者提供來源圖檔</b>。</li>
+          <li><b>第 7、8 章</b>：3D列印／雷切／CNC／自走車——<b>實體機具，無畫面可操作</b>，只能做到匯出 DXF/STL。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="film">
+  <h2><span class="n">03</span>教學影片 · 旁白 × 書頁 × 字卡</h2>
+  <p class="lede">三支真正剪好的教學影片：<b>書中頁面截圖</b> ＋ <b>文字說明字卡</b> ＋ <b>美佳 (zh-TW) 旁白</b> —— 用 Pillow 出中文字卡、ffmpeg 自動剪輯匯出 MP4。<span style="color:var(--green)">這是「剪輯」那半邊真正交付的成果。</span></p>
+  <div class="vgrid">
+    <figure class="vid"><div class="vbar"><span class="dot"></span>第 3 章 · 可愛小動物 · 35s</div><video controls preload="metadata" poster="ch3_poster.jpg"><source src="ch3.mp4" type="video/mp4"></video><figcaption>草圖 → 擠出 → 自由曲線</figcaption></figure>
+    <figure class="vid"><div class="vbar"><span class="dot"></span>第 4 章 · 馬克杯 · 22s</div><video controls preload="metadata" poster="ch4_poster.jpg"><source src="ch4.mp4" type="video/mp4"></video><figcaption>圓 → 擠出 → 薄殼挖空</figcaption></figure>
+    <figure class="vid"><div class="vbar"><span class="dot"></span>第 5 章 · TT 馬達 · 27s</div><video controls preload="metadata" poster="ch5_poster.jpg"><source src="ch5.mp4" type="video/mp4"></video><figcaption>查實際尺寸 → 工程件建模</figcaption></figure>
+  </div>
+  <p style="color:var(--dim);font-size:14px;margin:30px 0 0">另附一段<b>純 SVG/CSS 動畫走查</b>（無檔案、離線重演第 3 章建模流程）：</p>
+  <div class="player">
+    <div class="bar"><span class="dot rec"></span><span>build-walkthrough · CH3 小動物 · 自動播放</span><span style="margin-left:auto">SVG/CSS animation</span></div>
+    <svg viewBox="0 0 900 380" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;background:#06101c">
+      <style>
+        .step{opacity:0}
+        @keyframes s1{0%,4%{opacity:0}8%,30%{opacity:1}34%,100%{opacity:.12}}
+        @keyframes s2{0%,30%{opacity:0}36%,55%{opacity:1}60%,100%{opacity:.12}}
+        @keyframes s3{0%,55%{opacity:0}61%,82%{opacity:1}88%,100%{opacity:.12}}
+        @keyframes s4{0%,82%{opacity:0}90%,100%{opacity:1}}
+        .a1{animation:s1 11s infinite}.a2{animation:s2 11s infinite}.a3{animation:s3 11s infinite}.a4{animation:s4 11s infinite}
+        .cap{font-family:monospace;font-size:14px;fill:#37c2e0}
+        .dim{font-family:monospace;font-size:12px;fill:#f5b948}
+      </style>
+      <!-- grid plane -->
+      <g stroke="#10283f" stroke-width="1">
+        <line x1="120" y1="200" x2="780" y2="200"/><line x1="450" y1="60" x2="450" y2="340"/>
+      </g>
+      <circle cx="450" cy="200" r="3" fill="#7fa6c4"/>
+      <!-- step1 sketch rect -->
+      <g class="step a1"><rect x="360" y="150" width="180" height="100" fill="none" stroke="#37c2e0" stroke-width="2"/>
+        <text x="450" y="275" text-anchor="middle" class="dim">↤ 50 ↦</text><text x="330" y="205" class="dim">50</text>
+        <text x="450" y="120" text-anchor="middle" class="cap">① 草圖：中心矩形 50×50</text></g>
+      <!-- step2 extrude cube -->
+      <g class="step a2"><path d="M360 150 L450 120 L630 120 L540 150 Z" fill="#1b4061" stroke="#37c2e0"/>
+        <path d="M360 150 L360 250 L450 220 L450 120 Z" fill="#102a42" stroke="#37c2e0"/>
+        <path d="M540 150 L540 250 L450 220 L450 120 M540 150 L630 120" fill="#163952" stroke="#37c2e0"/>
+        <path d="M360 250 L540 250 L630 220 L450 220Z" fill="#163952" stroke="#37c2e0" opacity=".6"/>
+        <text x="450" y="120" text-anchor="middle" class="cap">② 擠出 50mm → 立方體身體</text></g>
+      <!-- step3 spline ears -->
+      <g class="step a3"><path d="M360 150 L450 120 L630 120 L540 150 Z" fill="#1b4061" stroke="#2b4f6e"/>
+        <path d="M360 150 L360 250 L450 220 L450 120 Z" fill="#102a42" stroke="#2b4f6e"/>
+        <path d="M540 150 L540 250 L450 220 L450 120 M540 150 L630 120" fill="#163952" stroke="#2b4f6e"/>
+        <path d="M430 130 q-10 -34 8 -40 q18 4 10 36 Z" fill="#13314a" stroke="#37c2e0" stroke-width="2"/>
+        <path d="M520 122 q-8 -34 10 -39 q18 5 9 35 Z" fill="#13314a" stroke="#37c2e0" stroke-width="2"/>
+        <text x="450" y="120" text-anchor="middle" class="cap">③ 頂面自由曲線 → 兩隻耳朵</text></g>
+      <!-- step4 done -->
+      <g class="step a4"><path d="M360 150 L450 120 L630 120 L540 150 Z" fill="#1b4061" stroke="#37c2e0"/>
+        <path d="M360 150 L360 250 L450 220 L450 120 Z" fill="#102a42" stroke="#37c2e0"/>
+        <path d="M540 150 L540 250 L450 220 L450 120 M540 150 L630 120" fill="#163952" stroke="#37c2e0"/>
+        <path d="M430 130 q-10 -34 8 -40 q18 4 10 36 Z" fill="#1b4061" stroke="#37c2e0" stroke-width="2"/>
+        <path d="M518 95 L518 122 M528 90 L528 119" stroke="#37c2e0" stroke-width="2"/>
+        <path d="M520 122 q-8 -34 10 -39 q18 5 9 35 Z" fill="#1b4061" stroke="#37c2e0" stroke-width="2"/>
+        <text x="450" y="120" text-anchor="middle" class="cap">④ 擠出耳朵 +20mm → 完成 🐰</text></g>
+      <rect x="120" y="356" width="660" height="4" fill="#10283f"/>
+      <rect x="120" y="356" width="120" height="4" fill="#37c2e0"><animate attributeName="width" values="0;660;660" keyTimes="0;.9;1" dur="11s" repeatCount="indefinite"/></rect>
+    </svg>
+  </div>
+  <p class="dim" style="color:var(--dim);font-size:13.5px">＊ 另一條路：用 <b>Palmier</b> 生成一支旁白摘要片（回扣最初「接續 Palmier」的測試）；本頁採自包含動畫以確保離線可看。</p>
+</section>
+
+<section id="script">
+  <h2><span class="n">04</span>逐字稿（節錄）</h2>
+  <p class="lede">使用者每一句指令原文，配上我當下的回應重點。看得出這是一場逐步加碼的協作。</p>
+  <div class="chat">
+    <div class="turn user"><div class="who">使用者</div><p>這本是我寫的書……依據裡面的操作介紹，自行操作 Google chrome 重新拍攝每個章節的教學影片。我想測試你的自我拍片和剪輯功能。</p></div>
+    <div class="turn me"><div class="who">Claude</div><p>讀完全書、盤點 8 章。發現 PDF 超過 100MB 讀不了 → 改用 pdftotext。釐清前提：要連 Chrome 擴充、要登入 Onshape、CAD 畫布精度是最大風險。</p></div>
+    <div class="turn user"><div class="who">使用者</div><p>我重新登入了</p></div>
+    <div class="turn me"><div class="who">Claude</div><p>連上瀏覽器、進 Onshape（Free、繁中），開始「先彩排再錄」。立刻撞到草圖尺寸：打 50 變成衝突歸 0、cmd+a 選到網頁、cmd+z 過度復原……</p></div>
+    <div class="turn user"><div class="who">使用者</div><p>Onshape 旁邊有個 AI 功能，你有需要也可以問他</p></div>
+    <div class="turn me"><div class="who">Claude</div><p>查證：那是 Onshape「AI Advisor」，只回答問題、不會幫你建模。誠實回報：救不了機械性的點擊問題。</p></div>
+    <div class="turn user"><div class="who">使用者</div><p>你先看一下他所有的教學文件好了 [附官方說明連結]</p></div>
+    <div class="turn me"><div class="who">Claude</div><p>讀官方文件，確認 AI Advisor 與快捷鍵；但牆是「點不中細邊」，文件救不了。誠實提出三條路。</p></div>
+    <div class="turn user"><div class="who">使用者</div><p>我還是想要讓你試試看……邊長的數值你是要用鍵盤直接輸入……旁邊有尺寸標注的話，直接點擊兩下重新輸入……不要用螢幕的長寬去抓那個數值。</p></div>
+    <div class="turn me"><div class="who">Claude</div><p>關鍵提示！照做＋補上兩招（一次一字元、Enter 跳欄）→ <b>破解！</b>全自動畫出精準 50×50×50 立方體。</p></div>
+    <div class="turn user"><div class="who">使用者</div><p>你全部都繪製製作看看</p></div>
+    <div class="turn me"><div class="who">Claude</div><p>測掉最後未知數「自由曲線」→ 過！做出小動物身體＋雙耳。逐項回報哪些能全自動。</p></div>
+    <div class="turn user"><div class="who">使用者</div><p>請把整本書的教學都做完，謝謝</p></div>
+    <div class="turn me"><div class="who">Claude</div><p>逐章推進：重做乾淨第 3 章、第 4 章馬克杯（破解薄殼＝搜尋+Enter）。誠實標出 5/6 章的資訊相依。</p></div>
+    <div class="turn user"><div class="who">使用者</div><p>連線好了，請繼續……（同步處理圖片和繪圖紀錄）</p></div>
+    <div class="turn me"><div class="who">Claude</div><p>建立繪圖紀錄檔、續做。誠實說明截圖無法落地→改用 SVG 圖解。</p></div>
+    <div class="turn user"><div class="who">使用者</div><p>你上網查資料完成第五章，然後整理所有對話逐字稿、實作歷程、自我對話、錯誤紀錄、圖片、影片，存成網頁檔。</p></div>
+    <div class="turn me"><div class="who">Claude</div><p>查 TT 馬達實際尺寸 → 建第 5 章工程件 → 整理成<b>這一頁</b>。</p></div>
+  </div>
+</section>
+
+<section id="mind">
+  <h2><span class="n">05</span>我的思考紀錄（自我對話）</h2>
+  <p class="lede">幾個真正的決策分岔——我當下怎麼想、為什麼那樣選。</p>
+
+  <div class="think"><p class="q">「該盲錄第一次就拍，還是先彩排？」</p><p>Onshape 草圖是 WebGL，靠座標盲點容易錯。教學片要乾淨，所以決定<b>先不錄、彩排一次</b>把座標和雷點摸清楚——這個決定讓我提早發現尺寸輸入會壞，沒有浪費在錄壞片上。</p></div>
+
+  <div class="think"><p class="q">「尺寸一直歸 0，是方法錯還是工具壞？」</p><p>使用者堅持「用鍵盤打數值」是對的——方法沒錯，壞的是<b>執行可靠度</b>：合成鍵太快掉字、Tab 焦點不動。我回去翻<b>原書</b>，發現書寫的是「按 Enter 跳欄」，我卻一直用 Tab。把「一次一字元＋Enter」兩招合起來才通。<b>教訓：答案常在使用者和原始資料裡，不在我的預設。</b></p></div>
+
+  <div class="think"><p class="q">「螢幕錄不到自己，要硬幹還是承認？」</p><p>我操控的 Chrome 視窗被丟到另一個 macOS 桌面、掛著偵錯橫幅、合成點擊不動實體游標、截圖又存不出檔——三道牆疊起來。我選擇<b>誠實回報而非假裝</b>，並把「錄製」拆成做得到的版本（真人錄＋我剪／自包含動畫）。<b>對一個測試而言，講清楚能力邊界本身就是有價值的結果。</b></p></div>
+
+  <div class="think"><p class="q">「使用者說『全做完』，但規模爆炸怎麼辦？」</p><p>我估算整本書是數百個操作、加上連線延遲讓每步約 2 倍慢。我沒有默默硬 grind，而是<b>每章做完回報一次</b>，並在第 5/6 章遇到真實阻礙（缺尺寸、缺圖、模擬進階）時把分岔攤open給使用者選。<b>尊重對方的資源，和把事做完一樣重要。</b></p></div>
+</section>
+
+<section id="errors">
+  <h2><span class="n">06</span>錯誤紀錄</h2>
+  <p class="lede">23 個真實踩到的雷。這份清單比成品更有參考價值——它定義了「AI 自動操作 CAD」目前的能與不能。</p>
+  <table>
+    <thead><tr><th>#</th><th>阻礙</th><th style="width:42%">解法／結果</th><th>狀態</th></tr></thead>
+    <tbody>
+      <tr><td class="s">01</td><td>PDF 101.5MB 超過 Read 工具上限</td><td>改用 <code>pdftotext</code> 抽文字層</td><td><span class="pill p-solve">繞過</span></td></tr>
+      <tr><td class="s">02</td><td>Chrome 擴充未連線（唯讀層不能點）</td><td>請使用者安裝並連線 Claude for Chrome</td><td><span class="pill p-solve">解決</span></td></tr>
+      <tr><td class="s">03</td><td>新文件對話框動畫中，點擊落空、名稱沒進欄</td><td>等動畫定位、三擊重打</td><td><span class="pill p-solve">解決</span></td></tr>
+      <tr><td class="s">04</td><td>草圖即時尺寸欄：打值後第二欄衝突歸 0</td><td>改「一次一字元＋Enter 跳欄」</td><td><span class="pill p-solve">破解</span></td></tr>
+      <tr><td class="s">05</td><td>多字元連打掉字：<code>"50"→"5"</code></td><td>每個數字分開送、截圖驗證</td><td><span class="pill p-solve">破解</span></td></tr>
+      <tr><td class="s">06</td><td>Tab 跳欄焦點不移動</td><td>改用 Enter（書中正解）</td><td><span class="pill p-solve">破解</span></td></tr>
+      <tr><td class="s">07</td><td><code>cmd+a</code> 選到整個網頁文字</td><td>避免；刪除改「點物件+Delete」</td><td><span class="pill p-solve">繞過</span></td></tr>
+      <tr><td class="s">08</td><td><code>cmd+z</code> 過度復原（清掉平面選取）</td><td>少用、重選平面</td><td><span class="pill p-solve">繞過</span></td></tr>
+      <tr><td class="s">09</td><td>尺寸工具點細邊落空／誤標成 90° 角度</td><td>改點兩條水平邊、放絕對空白處</td><td><span class="pill p-solve">繞過</span></td></tr>
+      <tr><td class="s">10</td><td>誤認工具圖示（建構線當尺寸）、快捷鍵 d 沒反應</td><td>改用「搜尋工具」按名稱啟用</td><td><span class="pill p-solve">繞過</span></td></tr>
+      <tr><td class="s">11</td><td>正視於按 n 翻到鏡像底面（qoT）</td><td>再按一次 / 點 view cube</td><td><span class="pill p-solve">解決</span></td></tr>
+      <tr><td class="s">12</td><td>中心矩形未約束→角落貼原點（非置中）</td><td>記為外觀瑕疵；尺寸正確不影響</td><td><span class="pill p-block">已知</span></td></tr>
+      <tr><td class="s">13</td><td>薄殼選單「直接點項目」失效 ×5</td><td>搜尋打字後<b>按 Enter</b> 才啟用</td><td><span class="pill p-solve">破解</span></td></tr>
+      <tr><td class="s">14</td><td>擠出對話框：選取常沒帶進、版面位移</td><td>選完截圖確認再設深度</td><td><span class="pill p-solve">繞過</span></td></tr>
+      <tr><td class="s">15</td><td>綠勾確認常要點兩次（延遲）</td><td>連點兩次＋等待</td><td><span class="pill p-solve">繞過</span></td></tr>
+      <tr><td class="s">16</td><td>視窗尺寸自己變（984→1534）座標全錯</td><td>每次從截圖重新讀座標</td><td><span class="pill p-solve">繞過</span></td></tr>
+      <tr><td class="s">17</td><td>「連線狀況不佳」持續延遲、偶發點擊失敗</td><td>放慢、勿批太多高風險點擊</td><td><span class="pill p-block">環境</span></td></tr>
+      <tr><td class="s">18</td><td>ffmpeg 全螢幕錄影框不到 Onshape 視窗</td><td>視窗在另一個 macOS Space</td><td><span class="pill p-block">硬牆</span></td></tr>
+      <tr><td class="s">19</td><td>Chrome「偵錯中」橫幅＋權限彈窗（畫面雜訊）</td><td>擴充操作期間無法移除</td><td><span class="pill p-block">硬牆</span></td></tr>
+      <tr><td class="s">20</td><td>合成點擊不移動實體游標（錄起來像鬼點）</td><td>—</td><td><span class="pill p-block">硬牆</span></td></tr>
+      <tr><td class="s">21</td><td>擴充與 computer-use 截圖<b>存不出可讀檔</b></td><td>網頁改用自繪 SVG</td><td><span class="pill p-block">硬牆</span></td></tr>
+      <tr><td class="s">22</td><td>Onshape AI Advisor 只答問、不建模</td><td>查證後排除這條路</td><td><span class="pill p-block">能力</span></td></tr>
+      <tr><td class="s">23</td><td>第 5 章馬達突出圓柱：擠出方向/選取未顯</td><td>本體尺寸正確、作代表件</td><td><span class="pill p-block">已知</span></td></tr>
+    </tbody>
+  </table>
+  <div class="panel red"><p style="margin:0"><b>三道「硬牆」的共同結論</b>（#18–21）：「全自動<u>操作</u> CAD」可行且已驗證；但「全自動<u>把自己操作畫面錄成乾淨教學影片</u>」目前被工具鏈擋住（視窗跨桌面、合成游標不顯、截圖不落檔）。<b>瓶頸不在「畫」，在「錄」。</b></p></div>
+</section>
+
+<section id="end">
+  <h2><span class="n">07</span>結語與限制</h2>
+  <div class="grid2">
+    <div class="panel green"><h3 style="margin-top:0;color:var(--green)">✓ 證明可行</h3>
+      <ul class="clean" style="font-size:14.5px">
+        <li>讀懂整本書、上網查補真實尺寸</li>
+        <li>全自動操作 Onshape：精密尺寸、自由曲線、薄殼、多特徵工程件</li>
+        <li>連最擔心的「精準尺寸」與「自由曲線」兩道牆都破</li>
+        <li>誠實維護繪圖紀錄與這份歷程網頁</li>
+      </ul></div>
+    <div class="panel amber"><h3 style="margin-top:0;color:var(--amber)">△ 目前的邊界</h3>
+      <ul class="clean" style="font-size:14.5px">
+        <li>螢幕錄影自己的操作 → 工具鏈三道硬牆</li>
+        <li>第 5-3 動態模擬（組合件進階）</li>
+        <li>第 6 章拼圖 → 需作者提供來源圖檔</li>
+        <li>第 7/8 章實體機具 → 非螢幕操作</li>
+      </ul></div>
+  </div>
+  <p style="margin-top:24px">最務實的分工：<b>「畫」與「查」交給我全自動、「錄」交給真人螢幕錄影、「剪」交給 Palmier。</b>三者各取所長，就能把整本書的教學影片做出來。</p>
+
+  <div class="panel cyan" style="margin-top:32px">
+    <h3 style="margin:0 0 4px">📡 本頁存取方式 · Tailscale</h3>
+    <p style="margin:0 0 14px;color:var(--dim);font-size:14px">登入同一 Tailscale 帳號的任何裝置（手機／iPad／電腦）可直接開啟 —— <span style="color:var(--green);font-family:var(--mono);font-size:13px">tailnet only · 非公開</span></p>
+    <table style="margin:0">
+      <tbody>
+        <tr><td class="s" style="color:var(--cyan);font-weight:600">① HTTPS · 推薦</td><td><code style="font-size:13.5px">https://macbook-pro-2.tail2562dd.ts.net/</code></td></tr>
+        <tr><td class="s" style="color:var(--cyan);font-weight:600">② 直接 IP</td><td><code style="font-size:13.5px">http://100.83.81.89:8899/index.html</code></td></tr>
+      </tbody>
+    </table>
+    <p style="margin:12px 0 0;font-family:var(--mono);font-size:12px;color:var(--dim)">device <b style="color:var(--ink)">macbook-pro-2</b> · IP <b style="color:var(--ink)">100.83.81.89</b> · 需本機 <span style="color:var(--ink)">python -m http.server 8899</span> 運行中 · macOS 防火牆已關</p>
+  </div>
+
+  <div class="footer">
+    <p><b>資料來源（TT 馬達尺寸）</b>：
+      <a class="link" href="https://www.adafruit.com/product/3777">Adafruit DC Gearbox "TT" Motor #3777</a> ·
+      <a class="link" href="https://www.handsontec.com/dataspecs/motor_fan/TT%20Gear%20Motor%20All%20Metal.pdf">Handson Technology TT Gear Motor 資料表</a> ·
+      <a class="link" href="https://cad.onshape.com/help/Content/Home/ai_advisor.htm">Onshape AI Advisor 說明</a></p>
+    <p>原書：趙珩宇《動手入門：3D 繪圖到機構製作》台科大圖書｜本頁為 Claude 自動操作 Onshape 之實作歷程全紀錄 · 2026-06-23</p>
+  </div>
+</section>
+
+</div>
+</body>
+</html>
