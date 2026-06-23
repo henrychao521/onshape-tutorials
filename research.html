@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI × CAD 建模調查報告 — Onshape 教學重製</title>
+<style>
+  :root{--bg:#0b1a2b;--panel:#0f2438;--ink:#dbe9f4;--dim:#7fa6c4;--line:#1d3a55;--cyan:#37c2e0;--amber:#f5b948;--green:#4fd18b;--red:#ff6b6b;--mono:ui-monospace,Menlo,Consolas,monospace;--sans:"PingFang TC","Noto Sans TC",system-ui,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.78;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:42px 42px;background-position:-1px -1px}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 22px 110px}
+  header{padding:66px 0 30px;border-bottom:1px solid var(--line)}
+  .kick{font-family:var(--mono);color:var(--cyan);letter-spacing:.3em;font-size:12px;text-transform:uppercase}
+  h1{font-size:clamp(28px,5vw,46px);margin:14px 0 8px;font-weight:800;letter-spacing:-.5px}
+  h1 span{color:var(--cyan)}
+  .sub{color:var(--dim);font-size:17px;max-width:740px}
+  .badges{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 4px;font-family:var(--mono);font-size:12px}
+  .badge{border:1px solid var(--line);padding:6px 12px;color:var(--dim)}.badge b{color:var(--green)}
+  a.back{font-family:var(--mono);font-size:12.5px;color:var(--cyan);text-decoration:none}
+  section{margin:48px 0}
+  h2{font-size:25px;font-weight:800;margin:0 0 6px;display:flex;gap:11px;align-items:baseline}
+  h2 .n{font-family:var(--mono);color:var(--cyan);font-size:15px}
+  h3{font-size:17px;margin:24px 0 6px}
+  p{margin:11px 0}
+  .panel{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cyan);padding:20px 22px;margin:16px 0}
+  .panel.green{border-left-color:var(--green)}.panel.amber{border-left-color:var(--amber)}.panel.red{border-left-color:var(--red)}
+  code{font-family:var(--mono);background:rgba(55,194,224,.12);color:var(--cyan);padding:1.5px 6px;border-radius:3px;font-size:.9em}
+  a.link{color:var(--cyan)}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:11.5px;color:var(--cyan);text-transform:uppercase;letter-spacing:.06em}
+  td.s{font-family:var(--mono);white-space:nowrap;font-size:12.5px}
+  .pill{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:3px;white-space:nowrap}
+  .ok{background:rgba(79,209,139,.15);color:var(--green)}.warn{background:rgba(245,185,72,.15);color:var(--amber)}.demo{background:rgba(127,166,196,.15);color:var(--dim)}
+  ul.clean{list-style:none;padding:0}ul.clean li{padding:7px 0 7px 24px;position:relative;border-bottom:1px solid rgba(29,58,85,.5)}
+  ul.clean li::before{content:"▸";position:absolute;left:2px;color:var(--cyan)}
+  .src{font-family:var(--mono);font-size:12.5px;color:var(--dim);padding:6px 0;border-bottom:1px solid rgba(29,58,85,.4)}
+  .src a{color:var(--cyan);text-decoration:none}
+  .footer{border-top:1px solid var(--line);margin-top:60px;padding-top:22px;color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<div style="background:rgba(245,185,72,.12);border-bottom:2px solid var(--amber);color:var(--amber);text-align:center;padding:10px 16px;font-family:var(--mono);font-size:13px">⚠ 延伸研究 · 為「Onshape 教學重製（測試中）」專案的方法論調查 · <a class="back" href="index.html">← 回實作歷程</a></div>
+<div class="wrap">
+
+<header>
+  <div class="kick">DEEP RESEARCH · 對抗式查證綜整報告</div>
+  <h1>用 AI 自動化 <span>3D CAD 建模</span><br>業界現況、方法與成功案例</h1>
+  <p class="sub">調查「有沒有人用 AI 協助 Onshape／其他 CAD 建模、用什麼方法」。結論直指：我們實測卡住的「點 WebGL 畫布」是業界刻意繞開的死路。</p>
+  <div class="badges">
+    <span class="badge">6 搜尋角度</span><span class="badge">27 來源抓取</span><span class="badge">133 主張萃取</span>
+    <span class="badge"><b>24</b> 通過對抗驗證</span><span class="badge">1 被駁回剔除</span><span class="badge">110 research agents</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">★</span>一句話結論</h2>
+  <div class="panel green">
+    <p style="margin:0;font-size:16px"><b>業界與社群已收斂到同一條路：AI →「參數化程式碼 / REST API」，不是 AI 去點 GUI／畫布。</b>本專案實測卡住的「用視覺精密點 WebGL 畫布」正是大家刻意繞開的死路。<b>視覺的正確用途是『驗證』（算圖＋比對），不是『操作』（點選）。</b>Onshape、Blender、Zoo、學術四個獨立領域證據完全收斂到此範式。</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">①</span>Onshape 專屬</h2>
+  <p class="sub">社群已有多個實際可用的方案，全部走 <b>REST API</b> 程式化建模、API 金鑰認證、掛在 Claude Code。</p>
+  <table>
+    <thead><tr><th>專案</th><th style="width:48%">做法</th><th>狀態</th></tr></thead>
+    <tbody>
+      <tr><td class="s"><a class="link" href="https://github.com/ReshefElisha/jarvis-onshape-mcp">jarvis-onshape-mcp</a><br>~60 工具</td><td>Claude Code plugin，REST API 下幾何指令；<b>關鍵：給 AI「一副眼鏡」</b> — 多視角算圖(前/上/右/等角)＋<code>compare_to_reference</code> 把模型疊在參考圖下視覺 diff，讓 Claude 抓自己的錯。實測 ~1 小時建出 4 件式螢幕支架</td><td><span class="pill ok">✓ 可用·最完整</span></td></tr>
+      <tr><td class="s"><a class="link" href="https://github.com/clarsbyte/onshape-mcp">clarsbyte/onshape-mcp</a><br>171★</td><td>明確標榜「<b>無需手動 UI 互動</b>」，工具如 create_sketch_rectangle / create_extrude / create_fillet / create_gear</td><td><span class="pill ok">✓ 可用</span></td></tr>
+      <tr><td class="s"><a class="link" href="https://github.com/hedless/onshape-mcp">hedless/onshape-mcp</a><br>45 工具·471 測試</td><td>基底款，api/client.py HTTP client，<code>ONSHAPE_ACCESS_KEY</code>+<code>SECRET_KEY</code> 認證；草圖/特徵/組合件/匯出 STL·STEP·PARASOLID</td><td><span class="pill ok">✓ 可用</span></td></tr>
+      <tr><td class="s"><a class="link" href="https://github.com/kyle-tennison/onpy">OnPy</a><br>Python 函式庫</td><td>寫 Python（非 FeatureScript）經 REST API 建模，產出等同網頁 UI 的設計</td><td><span class="pill warn">⚠ repo 已封存(2026-01)·會快速耗盡 API 配額</span></td></tr>
+      <tr><td class="s"><a class="link" href="https://www.onshape.com/en/blog/ai-artificial-intelligence-cloud-native-cad-pdm-platform">Onshape 官方 AI</a></td><td>三階段 <b>Advise→Assist→Automate</b>：AI Advisor 問答／AI 生成 FeatureScript／AI agent 改參數·幾何</td><td><span class="pill ok">Advisor ✓上線(不建模)</span> <span class="pill demo">FS補全·agent = 2026 路線圖</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="n">②</span>其他 CAD</h2>
+  <p class="sub">同一個「程式碼 / API」範式，橫跨商用與學術。</p>
+  <ul class="clean">
+    <li><b><a class="link" href="https://zoo.dev/research/introducing-text-to-cad">Zoo.dev Text-to-CAD</a></b> <span class="pill ok">✓ 生產級 API</span> — agentic 程式（Plan→Act→Observe→Repeat，像 Claude Code），產自家語言 <b>KCL 程式碼</b>＋<b>參數化 B-Rep</b>（非網格，理由：「工程要精度與可編輯性」，輸出 STEP）。有 Python/TS/Go/Rust client。</li>
+    <li><b><a class="link" href="https://www.spectrallabs.ai/research/SGS-1">Spectral Labs SGS-1</a></b> <span class="pill warn">⚠ medium</span> — 影像/網格 → STEP B-Rep，可在 SolidWorks/Fusion 開啟；但「parametric/first」宣稱有爭議，其效能 benchmark 本研究已<b>駁回剔除</b>。</li>
+    <li><b><a class="link" href="https://github.com/ahujasid/blender-mcp">BlenderMCP</a></b> <span class="pill ok">✓ 可用</span> — MCP → Blender，<b>執行 bpy Python(exec)</b>、server 內零 canvas 操作。第三方評測：「可用工具非 demo」，但空間定位不精確。<b>「MCP 串接 3D 軟體」的直接類比。</b></li>
+    <li><b><a class="link" href="https://techcrunch.com/2025/10/31/yc-alum-adam-raises-4-1m-to-turn-viral-text-to-3d-tool-into-ai-copilot/">Adam CAD</a></b> <span class="pill demo">商用</span> — YC、融資 $4.1M，從 text-to-3D 轉 AI copilot。</li>
+    <li><b>學術（已發表/開源）</b> <span class="pill demo">研究</span> — <a class="link" href="https://arxiv.org/abs/2105.09492">DeepCAD</a>(首個把 CAD 表示成「操作序列」的生成模型)、<a class="link" href="https://arxiv.org/abs/2409.17106">Text2CAD</a>(NeurIPS 2024，文字→序列化參數 CAD)、<a class="link" href="https://arxiv.org/abs/2505.14646">CAD-Coder</a>(影像→可編輯 <b>CadQuery</b> 程式碼，100% 語法率、勝 GPT-4.5/Qwen-VL；屬主場 benchmark)。</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">③</span>方法論比較與建議</h2>
+  <div class="panel red"><p style="margin:0"><b>為何「AI 點 GUI/canvas」難</b>（本專案親身踩到）：精度／座標／即時操作不可靠 — WebGL 畫布 1px 邊線、合成點擊掉字、視窗座標漂移，全是死路。</p></div>
+  <div class="panel green"><p style="margin:0"><b>為何「AI → 程式碼/API」可行</b>：給出<b>精確（曲線是真曲線）、可重現、可版本化、可被 LLM 自我檢視迭代</b>的幾何定義。Onshape(MCP/OnPy)、Blender(bpy)、Zoo(KCL)、學術(序列化操作) 四個獨立領域證據完全收斂。</p></div>
+  <div class="panel amber"><p style="margin:0"><b>👉 對本專案的具體建議</b>：放棄 WebGL 點選，改用 <b>Onshape REST API</b>（直接呼叫，或經現成 jarvis MCP server / OnPy），沿用「<b>程式化下指令 ＋ 多視角算圖視覺驗證</b>」迴圈。這會一次解決所有卡關。</p></div>
+</section>
+
+<section>
+  <h2><span class="n">⚠</span>注意事項與限制</h2>
+  <ul class="clean">
+    <li><b>API 配額</b>：Onshape 2025 起年配額低（Free/EDU 僅 2,500 次、Pro 5,000、Enterprise 每用戶 10,000；超額回 402），MCP server 的節流策略是否夠用尚無證據。</li>
+    <li><b>品質落差</b>：這些都證明「能做、用什麼方法」，但<b>複雜幾何的可靠度都會掉</b>；輸出品質證據偏軼事性（jarvis 自述 1 小時建支架、BlenderMCP 空間定位不精確）。</li>
+    <li><b>效能數字須謹慎</b>：SGS-1「勝 GPT-5」benchmark 已被駁回；CAD-Coder「100% 語法/勝 GPT-4.5」雖經同儕審查但屬作者自有測試集，跨分布泛化未證實。</li>
+    <li><b>細節更正</b>：jarvis/hedless 實際是 <b>Onshape API 金鑰(access/secret)認證</b>，非部分 README 說的 HMAC。</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">§</span>主要來源</h2>
+  <div class="src">▸ Onshape MCP/API：<a href="https://github.com/ReshefElisha/jarvis-onshape-mcp">jarvis-onshape-mcp</a> · <a href="https://github.com/clarsbyte/onshape-mcp">clarsbyte/onshape-mcp</a> · <a href="https://github.com/hedless/onshape-mcp">hedless/onshape-mcp</a> · <a href="https://github.com/kyle-tennison/onpy">OnPy</a> · <a href="https://onshape-public.github.io/docs/auth/limits/">API limits</a></div>
+  <div class="src">▸ Onshape 官方 AI：<a href="https://www.onshape.com/en/blog/ai-artificial-intelligence-cloud-native-cad-pdm-platform">AI 路線部落格</a> · <a href="https://www.onshape.com/en/features/ai-advisor">AI Advisor</a></div>
+  <div class="src">▸ 其他 CAD：<a href="https://zoo.dev/research/introducing-text-to-cad">Zoo Text-to-CAD</a> · <a href="https://www.spectrallabs.ai/research/SGS-1">SGS-1</a> · <a href="https://github.com/ahujasid/blender-mcp">BlenderMCP</a> · <a href="https://techcrunch.com/2025/10/31/yc-alum-adam-raises-4-1m-to-turn-viral-text-to-3d-tool-into-ai-copilot/">Adam(TechCrunch)</a></div>
+  <div class="src">▸ 學術：<a href="https://arxiv.org/abs/2105.09492">DeepCAD</a> · <a href="https://arxiv.org/abs/2409.17106">Text2CAD</a> · <a href="https://arxiv.org/abs/2505.14646">CAD-Coder</a></div>
+  <div class="footer">
+    <p>深度研究 · 6 角度扇出 / 27 來源 / 133 主張 / 24 通過對抗式驗證 / 1 駁回 · 2026-06-23</p>
+    <p>本報告為「Onshape 教學重製（測試中，成果不理想）」專案之方法論調查 · <a class="back" href="index.html">← 回實作歷程網頁</a></p>
+  </div>
+</section>
+
+</div>
+</body>
+</html>
