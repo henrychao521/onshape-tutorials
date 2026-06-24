@@ -86,6 +86,7 @@
 </head>
 <body>
 <div style="background:rgba(245,185,72,.12);border-bottom:2px solid var(--amber);color:var(--amber);text-align:center;padding:11px 16px;font-family:var(--mono);font-size:13.5px;letter-spacing:.02em">⚠ 測試中 · 暫且成果不理想 —— 本頁為 AI 自動操作 Onshape 的實驗歷程，操作結果尚在調整中</div>
+<a href="#update" style="display:block;text-decoration:none;background:rgba(79,209,139,.12);border-bottom:2px solid var(--green);color:var(--green);text-align:center;padding:11px 16px;font-family:var(--mono);font-size:13.5px;letter-spacing:.02em">✦ 2026-06-24 更新：改走 Onshape <b>API 路線</b>，建模與螢幕錄影<b>都成功</b>了 —— 點此看最新進展 →</a>
 <div class="wrap">
 
 <header class="hero">
@@ -107,6 +108,7 @@
 </header>
 
 <nav class="toc">
+  <a href="#update" style="color:var(--green)">★ API 路線突破</a>
   <a href="#intro">緣起</a>
   <a href="#recipe">★ 破解的手法</a>
   <a href="#work">實作歷程</a>
@@ -117,6 +119,46 @@
   <a href="#end">結語與限制</a>
   <a href="research.html" style="color:var(--amber)">📊 研究報告</a>
 </nav>
+
+<section id="update">
+  <h2><span class="n">2026·06·24</span>★ 最新進展 — 改走 Onshape API：畫與錄都通了</h2>
+  <p class="lede">前一版（下方歷程）卡在「全自動<u>操作</u> CAD 可行，但全自動<u>錄製</u>被三道硬牆擋住」。這次依研究結論<b>改走 Onshape REST API（jarvis-onshape MCP）建模</b>，不再點 WebGL 畫布——結果：建模更乾淨，<b>連『錄製硬牆』也一併破解</b>。</p>
+
+  <div class="stats">
+    <div class="stat"><b>39</b><span>次 Onshape API 呼叫（年配額 1.6%）</span></div>
+    <div class="stat"><b>125,000</b><span>立方體體積 mm³（精確 50³）</span></div>
+    <div class="stat"><b>0.25%</b><span>最終體積與原版差距</span></div>
+    <div class="stat"><b>26</b><span>張 API 算圖（含 24 格轉檯）</span></div>
+  </div>
+
+  <div class="vgrid">
+    <figure class="vid"><div class="vbar"><span class="dot"></span>CH3 · API 建模動畫 · 16s</div><video controls preload="metadata" poster="ch3_api_poster.jpg"><source src="ch3_api_rebuild.mp4" type="video/mp4"></video><figcaption>50³ 立方 → 橢圓凸起 → 360° 轉檯（純 API 算圖串接）</figcaption></figure>
+    <figure class="vid" style="display:flex;flex-direction:column"><div class="vbar"><span class="dot"></span>最終模型 · iso</div><img src="ch3_api_final.jpg" alt="CH3 最終模型 iso 算圖" style="width:100%;display:block;background:#fff"><figcaption>bbox <code>50×50×70</code>、137,888 mm³（原版 137,542，差 0.25%）</figcaption></figure>
+  </div>
+
+  <h3>建模序列（每步皆 API 呼叫 + 算圖驗證）</h3>
+  <div class="panel cyan">
+    <ol style="margin:0;padding-left:22px;line-height:1.9">
+      <li>Top 平面畫 <code>50×50</code> 方形草圖</li>
+      <li>擠出 <code>50mm</code>（BLIND, NEW）→ <b>50³ 立方體</b>，體積 125,000 mm³</li>
+      <li>頂面畫橢圓凸起草圖</li>
+      <li>擠出 <code>20mm</code>（ADD）→ 最終 <b>50×50×70</b></li>
+    </ol>
+  </div>
+
+  <h3>關鍵突破：原來「錄製硬牆」是被『自動點 UI』綁住的</h3>
+  <div class="panel green"><p style="margin:0">舊路線必須<b>自動點擊 WebGL 畫布</b>，才會撞上視窗跨桌面、合成游標不顯、截圖不落檔三道牆。新路線<b>用 API 改模型</b>，已開的 Onshape 瀏覽器分頁會<b>即時更新</b>——只要<b>被動螢幕錄影</b>就拍得到，根本不需要自動點 UI。錯誤紀錄 <a href="#errors" style="color:var(--green)">#18–21</a> 的「硬牆」因此在 API 路線下不再是阻礙。</p></div>
+
+  <div class="panel amber"><h3 style="margin-top:0;color:var(--amber)">誠實備註</h3>
+    <ul class="clean" style="font-size:14.5px">
+      <li>橢圓凸起以 <code>rounded_rectangle</code>（體育場形）<b>近似</b>原版 5 點 <b>spline</b>——<code>create_sketch</code> 無原生 spline；要完全還原可改用 FeatureScript。</li>
+      <li><b>桌面螢幕實錄未公開</b>：錄到的是整個桌面（含開發端視窗與對話），為保護隱私本頁只放乾淨的 API 建模動畫。</li>
+      <li>本片<b>無旁白</b>：Palmier 當時未登入（<code>canGenerate=false</code>）無法生成語音；中文字卡以 Pillow＋ffmpeg 合成。</li>
+      <li>重建檔為 <b>public</b>（Onshape 免費方案僅能建公開文件）。</li>
+    </ul>
+  </div>
+  <p style="color:var(--dim);font-size:13.5px">工具鏈：jarvis-onshape MCP（REST API 建模）· Onshape <code>/shadedviews</code> 算圖 · ffmpeg 合成 · Pillow 中文字卡。逐動作 API 用量另有記錄檔（呼叫數／算圖張數／累計配額）。</p>
+</section>
 
 <section id="intro">
   <h2><span class="n">00</span>緣起</h2>
@@ -394,6 +436,7 @@
       </ul></div>
   </div>
   <p style="margin-top:24px">最務實的分工：<b>「畫」與「查」交給我全自動、「錄」交給真人螢幕錄影、「剪」交給 Palmier。</b>三者各取所長，就能把整本書的教學影片做出來。</p>
+  <div class="panel green" style="margin-top:20px"><p style="margin:0"><b>2026-06-24 後記</b>：上面「瓶頸在錄不在畫」的結論，在<b>改走 Onshape API 路線</b>後被推翻了一半——API 建模讓「畫」更乾淨，且模型即時同步到瀏覽器、被動錄影就能拍到，「錄」也通了。詳見頁首 <a href="#update" style="color:var(--green)">★ 最新進展</a>。</p></div>
 
   <div class="footer">
     <p><b>資料來源（TT 馬達尺寸）</b>：
